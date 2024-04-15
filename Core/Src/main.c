@@ -149,7 +149,7 @@ int main(void)
     len = snprintf(buf, sizeof(buf), "j = %04d | adc_reading = %d\n\r", j, adc_reading);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
 	  HAL_Delay(500);
-    matrix_select(1, 0);
+    matrix_select(0, 0);
     HAL_ADC_Start(&hadc);
 
     /* USER CODE END WHILE */
