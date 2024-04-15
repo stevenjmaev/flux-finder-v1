@@ -1,3 +1,4 @@
 **/*.obj
 **/*.elf
 **/*.ninja_log
+build/Debug/.ninja_log
