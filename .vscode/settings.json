@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "stm32f0xx_hal.h": "c"
+        "stm32f0xx_hal.h": "c",
+        "main.h": "c",
+        "matrix.h": "c",
+        "stdio.h": "c",
+        "stdint.h": "c",
+        "stdint-gcc.h": "c"
     }
 }

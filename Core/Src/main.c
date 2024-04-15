@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "matrix.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,12 +117,16 @@ int main(void)
   int i = 0;
   int j = 0;
   int len = 0;
+  unsigned int adc_reading = 0;
   char buf [64] = {'\0'};
 
   snprintf(buf, sizeof(buf), "hello world!\n\r");
-  HAL_UART_Transmit(&huart1, buf, sizeof(buf), 100);
+  HAL_UART_Transmit(&huart1, buf, sizeof(buf), HAL_MAX_DELAY);
+  HAL_ADC_Start(&hadc);
   while (1)
   {
+    HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+    adc_reading = HAL_ADC_GetValue(&hadc);
     j++;
 	  i = (i + 1) % 3;
 	  switch(i){
@@ -141,9 +146,11 @@ int main(void)
 		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 		  break;
 	  }
-    len = snprintf(buf, sizeof(buf), "j=%04d\n\r", j);
-    HAL_UART_Transmit(&huart1, buf, len, 100);
+    len = snprintf(buf, sizeof(buf), "j = %04d | adc_reading = %d\n\r", j, adc_reading);
+    HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
 	  HAL_Delay(500);
+    matrix_select(1, 0);
+    HAL_ADC_Start(&hadc);
 
     /* USER CODE END WHILE */
 

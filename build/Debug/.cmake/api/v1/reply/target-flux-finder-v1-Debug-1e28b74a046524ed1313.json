@@ -138,7 +138,8 @@
 				29,
 				30,
 				31,
-				32
+				32,
+				33
 			]
 		},
 		{
@@ -201,7 +202,7 @@
 			"language" : "ASM",
 			"sourceIndexes" : 
 			[
-				33
+				34
 			]
 		}
 	],
@@ -266,14 +267,15 @@
 				29,
 				30,
 				31,
-				32
+				32,
+				33
 			]
 		},
 		{
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				33
+				34
 			]
 		}
 	],
@@ -283,6 +285,12 @@
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
 			"path" : "Core/Src/main.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "Core/Src/matrix.c",
 			"sourceGroupIndex" : 0
 		},
 		{
