@@ -36,3 +36,12 @@
 3618	3853	7348414600789761	flux-finder-v1.elf	14a09c10d736c119
 36	344	7348416201106125	CMakeFiles/flux-finder-v1.dir/Core/Src/main.c.obj	d728183aaeb2a160
 346	654	7348416203911767	flux-finder-v1.elf	14a09c10d736c119
+28	382	7348417832464735	CMakeFiles/flux-finder-v1.dir/Core/Src/main.c.obj	d728183aaeb2a160
+384	769	7348417836019096	flux-finder-v1.elf	14a09c10d736c119
+54	455	7348431634253961	CMakeFiles/flux-finder-v1.dir/Core/Src/sysmem.c.obj	b0bc93e0dfac3c37
+68	566	7348431635439841	CMakeFiles/flux-finder-v1.dir/Core/Src/syscalls.c.obj	1f40c2733e048dc2
+31	627	7348431635947241	CMakeFiles/flux-finder-v1.dir/Core/Src/system_stm32f0xx.c.obj	c42a581f33c3a449
+15	634	7348431635947241	CMakeFiles/flux-finder-v1.dir/Core/Src/stm32f0xx_it.c.obj	d39b8538fab13b67
+22	645	7348431636246632	CMakeFiles/flux-finder-v1.dir/Core/Src/stm32f0xx_hal_msp.c.obj	2e4856362db84588
+7	755	7348431637409629	CMakeFiles/flux-finder-v1.dir/Core/Src/main.c.obj	d728183aaeb2a160
+755	1106	7348431640579358	flux-finder-v1.elf	14a09c10d736c119

@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,7 +112,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  
+
   int i = 0;
   char buf [64] = {'\0'};
 
@@ -138,11 +138,7 @@ int main(void)
 		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 		  break;
 	  }
-	  snprintf(buf, sizeof(buf), "0:");
-	  HAL_UART_Transmit(&huart1, buf, sizeof(buf), 100);
-	  snprintf(buf, sizeof(buf), "1");
-	  HAL_UART_Transmit(&huart1, buf, sizeof(buf), 100);
-	  snprintf(buf, sizeof(buf), "3");
+	  snprintf(buf, sizeof(buf), "yay\n\r");
 	  HAL_UART_Transmit(&huart1, buf, sizeof(buf), 100);
 	  HAL_Delay(250);
 
