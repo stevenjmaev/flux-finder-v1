@@ -114,12 +114,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   int i = 0;
+  int j = 0;
+  int len = 0;
   char buf [64] = {'\0'};
 
   snprintf(buf, sizeof(buf), "hello world!\n\r");
   HAL_UART_Transmit(&huart1, buf, sizeof(buf), 100);
   while (1)
   {
+    j++;
 	  i = (i + 1) % 3;
 	  switch(i){
 	  case 0:
@@ -138,9 +141,9 @@ int main(void)
 		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 		  break;
 	  }
-	  snprintf(buf, sizeof(buf), "yay\n\r");
-	  HAL_UART_Transmit(&huart1, buf, sizeof(buf), 100);
-	  HAL_Delay(250);
+    len = snprintf(buf, sizeof(buf), "j=%04d\n\r", j);
+    HAL_UART_Transmit(&huart1, buf, len, 100);
+	  HAL_Delay(500);
 
     /* USER CODE END WHILE */
 
