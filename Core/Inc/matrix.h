@@ -9,7 +9,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdio.h>
-
+extern uint32_t g_int_cnt;
 void matrix_select(int row, int col);
 
 #ifdef __cplusplus

@@ -48,6 +48,8 @@ I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim3;
+
 UART_HandleTypeDef huart1;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
@@ -63,6 +65,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_ADC_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,7 +110,12 @@ int main(void)
   MX_SPI2_Init();
   MX_I2C1_Init();
   MX_ADC_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+
+
+  // Init Timer ISRs
+  
 
   /* USER CODE END 2 */
 
@@ -123,6 +131,7 @@ int main(void)
   snprintf(buf, sizeof(buf), "hello world!\n\r");
   HAL_UART_Transmit(&huart1, buf, sizeof(buf), HAL_MAX_DELAY);
   HAL_ADC_Start(&hadc);
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_2);
   while (1)
   {
     HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
@@ -146,7 +155,9 @@ int main(void)
 		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 		  break;
 	  }
-    len = snprintf(buf, sizeof(buf), "j = %04d | adc_reading = %d\n\r", j, adc_reading);
+    len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d | int_cnt=%d\n\r", j, adc_reading, g_int_cnt);
+    HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+    len = snprintf(buf, sizeof(buf), "  htim3.Instance->CCR2 = %d\n\r", htim3.Instance->CCR2);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
 	  HAL_Delay(500);
     matrix_select(0, 0);
@@ -383,6 +394,65 @@ static void MX_SPI2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -472,7 +542,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin|RGB_DO_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : BTN0_Pin BTN1_Pin BTN2_Pin */
   GPIO_InitStruct.Pin = BTN0_Pin|BTN1_Pin|BTN2_Pin;
@@ -490,9 +560,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ROW0_Pin ROW1_Pin ROW2_Pin ROW3_Pin
-                           COL0_Pin LED1_Pin LED2_Pin RGB_DO_Pin */
+                           COL0_Pin LED1_Pin LED2_Pin */
   GPIO_InitStruct.Pin = ROW0_Pin|ROW1_Pin|ROW2_Pin|ROW3_Pin
-                          |COL0_Pin|LED1_Pin|LED2_Pin|RGB_DO_Pin;
+                          |COL0_Pin|LED1_Pin|LED2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

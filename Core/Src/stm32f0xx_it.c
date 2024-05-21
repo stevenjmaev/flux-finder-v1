@@ -22,6 +22,7 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "matrix.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +56,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -139,6 +140,38 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f0xx.s).                    */
 /******************************************************************************/
+
+static uint8_t count_lut [2][2] = {{14,34},{34,14}};
+
+/**
+  * @brief This function handles TIM3 global interrupt.
+  */
+void TIM3_IRQHandler(void)
+{
+  g_int_cnt ++;
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+  static uint8_t current_bit_idx = 0;
+  static uint8_t step = 0;
+  uint8_t byte = 0xF2;
+
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
+
+  // compare value
+  uint32_t new_ccr = 0;
+  
+  // e.g. count_lut[0] gives the two counts for bit '0'
+  new_ccr = count_lut [byte & (1 << current_bit_idx)] [step];
+  step = (step + 1) % 2; // increment step
+
+  // if that was the last step, advance to next bit
+  if (!step) current_bit_idx = (current_bit_idx + 1) % 8;
+
+  htim3.Instance->CCR2 += new_ccr;
+
+  /* USER CODE END TIM3_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

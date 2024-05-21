@@ -5,6 +5,7 @@
         "matrix.h": "c",
         "stdio.h": "c",
         "stdint.h": "c",
-        "stdint-gcc.h": "c"
+        "stdint-gcc.h": "c",
+        "stm32f0xx_it.h": "c"
     }
 }
