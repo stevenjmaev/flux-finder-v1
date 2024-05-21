@@ -141,7 +141,13 @@ void SysTick_Handler(void)
 /* please refer to the startup file (startup_stm32f0xx.s).                    */
 /******************************************************************************/
 
-static uint8_t count_lut [2][2] = {{14,34},{34,14}};
+// NOTE: 14 and 34 are too small!!
+// static uint32_t count_lut [2][2] = {{14,34},{34,14}};
+// static uint32_t count_lut [2][2] = {{140,340},{340,140}};
+
+// 120 is the smallest count I can do... this corresponds to 2.5 us
+static uint32_t count_lut [2][2] = {{120,340},{340,120}};
+// also, 'HAL_TIM_IRQHandler' is too slow!
 
 /**
   * @brief This function handles TIM3 global interrupt.
@@ -152,12 +158,12 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 0 */
   static uint8_t current_bit_idx = 0;
   static uint8_t step = 0;
-  uint8_t byte = 0xF2;
+  static uint8_t byte = 0xF2;
 
   /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
+  // HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-
+  TIM3->SR = 0; // clear interrupt flag
   // compare value
   uint32_t new_ccr = 0;
   
@@ -166,7 +172,7 @@ void TIM3_IRQHandler(void)
   step = (step + 1) % 2; // increment step
 
   // if that was the last step, advance to next bit
-  if (!step) current_bit_idx = (current_bit_idx + 1) % 8;
+  // if (!step) current_bit_idx = (current_bit_idx + 1) % 8;
 
   htim3.Instance->CCR2 += new_ccr;
 
