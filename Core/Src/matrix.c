@@ -1,6 +1,5 @@
 #include "main.h"
 
-uint32_t g_int_cnt = 0;
 void matrix_select(int row, int col){
     // TODO: rework this so it uses less function calls.
     uint8_t row0, row1, row2, row3;

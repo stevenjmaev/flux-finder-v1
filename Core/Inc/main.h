@@ -79,8 +79,6 @@ void Error_Handler(void);
 #define I_SENSE_GPIO_Port GPIOA
 #define ROW0_Pin GPIO_PIN_0
 #define ROW0_GPIO_Port GPIOB
-#define ROW1_Pin GPIO_PIN_1
-#define ROW1_GPIO_Port GPIOB
 #define ROW2_Pin GPIO_PIN_2
 #define ROW2_GPIO_Port GPIOB
 #define ROW3_Pin GPIO_PIN_10
@@ -103,6 +101,8 @@ void Error_Handler(void);
 #define LED1_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_4
 #define LED2_GPIO_Port GPIOB
+#define ROW1_Pin GPIO_PIN_5
+#define ROW1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

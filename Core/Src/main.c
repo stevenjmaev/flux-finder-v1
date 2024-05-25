@@ -49,10 +49,10 @@ I2C_HandleTypeDef hi2c1;
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
+DMA_HandleTypeDef hdma_tim3_ch4_up;
 
 UART_HandleTypeDef huart1;
 
-DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -72,7 +72,19 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#define DMA_LEN 144
+static volatile uint16_t dma_buf [DMA_LEN] = {
+  35, 50, 85, 100, 135, 150, 185, 200, 235, 250, 285, 300, 335, 350, 385, 400, 
+  415, 450, 465, 500, 515, 550, 565, 600, 615, 650, 665, 700, 715, 750, 765, 
+  800, 815, 850, 865, 900, 915, 950, 965, 1000, 1015, 1050, 1065, 1100, 1115, 1150, 
+  1165, 1200, 1215, 1250, 1265, 1300, 1315, 1350, 1365, 1400, 1415, 1450, 1465, 1500, 1515, 
+  1550, 1565, 1600, 1635, 1650, 1685, 1700, 1735, 1750, 1785, 1800, 1835, 1850, 1885, 1900, 
+  1935, 1950, 1985, 2000, 2015, 2050, 2065, 2100, 2115, 2150, 2165, 2200, 2215, 2250, 2265, 
+  2300, 2315, 2350, 2365, 2400, 2415, 2450, 2465, 2500, 2515, 2550, 2565, 2600, 2615, 2650, 
+  2665, 2700, 2715, 2750, 2765, 2800, 2815, 2850, 2865, 2900, 2915, 2950, 2965, 3000, 3015, 
+  3050, 3065, 3100, 3115, 3150, 3165, 3200, 3235, 3250, 3285, 3300, 3335, 3350, 3385, 3400, 
+  3435, 3450, 3485, 3500, 3535, 3550, 3585, 3600,
+};
 /* USER CODE END 0 */
 
 /**
@@ -114,7 +126,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-  // Init Timer ISRs
   
 
   /* USER CODE END 2 */
@@ -131,31 +142,40 @@ int main(void)
   snprintf(buf, sizeof(buf), "hello world!\n\r");
   HAL_UART_Transmit(&huart1, buf, sizeof(buf), HAL_MAX_DELAY);
   HAL_ADC_Start(&hadc);
-  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_2);
+  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+  
+  // HAL_DMA_Start(&hdma_tim3_ch4_up, (uint32_t)&buf, (uint32_t)&htim3.Instance->CCR2, 4);
+  // HAL_TIM_Base_Start_DMA(&htim3, (uint32_t)&dma_buf, 4);
+  HAL_TIM_OC_Start_DMA(&htim3, TIM_CHANNEL_4, (uint32_t*)&dma_buf, DMA_LEN);
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+  
+  // HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_2);
   while (1)
   {
     HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
     adc_reading = HAL_ADC_GetValue(&hadc);
     j++;
 	  i = (i + 1) % 3;
-	  switch(i){
-	  case 0:
-		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-		  break;
-	  case 1:
-		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-		  break;
-	  case 2:
-		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-		  break;
-	  }
-    len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d | int_cnt=%d\n\r", j, adc_reading, g_int_cnt);
+	  // switch(i){
+	  // case 0:
+		//   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+		//   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+		//   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+		//   break;
+	  // case 1:
+		//   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+		//   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+		//   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+		//   break;
+	  // case 2:
+		//   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+		//   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+		//   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+		//   break;
+	  // }
+    len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
     len = snprintf(buf, sizeof(buf), "  htim3.Instance->CCR2 = %d\n\r", htim3.Instance->CCR2);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
@@ -439,9 +459,9 @@ static void MX_TIM3_Init(void)
   }
   sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
   sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -489,8 +509,6 @@ static void MX_USART1_UART_Init(void)
 
 /**
   * Enable DMA controller clock
-  * Configure DMA for memory to memory transfers
-  *   hdma_memtomem_dma1_channel1
   */
 static void MX_DMA_Init(void)
 {
@@ -498,19 +516,10 @@ static void MX_DMA_Init(void)
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
 
-  /* Configure DMA request hdma_memtomem_dma1_channel1 on DMA1_Channel1 */
-  hdma_memtomem_dma1_channel1.Instance = DMA1_Channel1;
-  hdma_memtomem_dma1_channel1.Init.Direction = DMA_MEMORY_TO_MEMORY;
-  hdma_memtomem_dma1_channel1.Init.PeriphInc = DMA_PINC_ENABLE;
-  hdma_memtomem_dma1_channel1.Init.MemInc = DMA_MINC_ENABLE;
-  hdma_memtomem_dma1_channel1.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma_memtomem_dma1_channel1.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-  hdma_memtomem_dma1_channel1.Init.Mode = DMA_NORMAL;
-  hdma_memtomem_dma1_channel1.Init.Priority = DMA_PRIORITY_LOW;
-  if (HAL_DMA_Init(&hdma_memtomem_dma1_channel1) != HAL_OK)
-  {
-    Error_Handler( );
-  }
+  /* DMA interrupt init */
+  /* DMA1_Channel2_3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
 }
 
@@ -535,8 +544,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|COL1_Pin|COL2_Pin|COL3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ROW0_Pin|ROW1_Pin|ROW2_Pin|ROW3_Pin
-                          |COL0_Pin|SPI1_CS0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ROW0_Pin|ROW2_Pin|ROW3_Pin|COL0_Pin
+                          |SPI1_CS0_Pin|ROW1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);
@@ -559,10 +568,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ROW0_Pin ROW1_Pin ROW2_Pin ROW3_Pin
-                           COL0_Pin LED1_Pin LED2_Pin */
-  GPIO_InitStruct.Pin = ROW0_Pin|ROW1_Pin|ROW2_Pin|ROW3_Pin
-                          |COL0_Pin|LED1_Pin|LED2_Pin;
+  /*Configure GPIO pins : ROW0_Pin ROW2_Pin ROW3_Pin COL0_Pin
+                           LED1_Pin LED2_Pin ROW1_Pin */
+  GPIO_InitStruct.Pin = ROW0_Pin|ROW2_Pin|ROW3_Pin|COL0_Pin
+                          |LED1_Pin|LED2_Pin|ROW1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
