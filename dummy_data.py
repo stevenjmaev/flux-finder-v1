@@ -15,9 +15,9 @@ i = True
 current_bit = 72
 while current_bit > 0:
     if data & (1 << (current_bit - 1)): # it's a '1'
-        width = 35 if i else 15
+        width = 35 if not i else 15
     else: # it's a '0'
-        width = 15 if i else 35
+        width = 15 if not i else 35
 
     current += width
     if not i:
