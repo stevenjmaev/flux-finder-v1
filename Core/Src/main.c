@@ -158,23 +158,23 @@ int main(void)
     adc_reading = HAL_ADC_GetValue(&hadc);
     j++;
 	  i = (i + 1) % 3;
-	  // switch(i){
-	  // case 0:
-		//   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-		//   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		//   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-		//   break;
-	  // case 1:
-		//   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-		//   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-		//   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-		//   break;
-	  // case 2:
-		//   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-		//   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		//   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-		//   break;
-	  // }
+	  switch(i){
+	  case 0:
+		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+		  break;
+	  case 1:
+		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+		  break;
+	  case 2:
+		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+		  break;
+	  }
     len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
     len = snprintf(buf, sizeof(buf), "  htim3.Instance->CCR2 = %d\n\r", htim3.Instance->CCR2);

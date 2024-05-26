@@ -75,7 +75,6 @@ void NMI_Handler(void)
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
    while (1)
   {
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
@@ -152,7 +151,6 @@ void DMA1_Channel2_3_IRQHandler(void)
   /* USER CODE END DMA1_Channel2_3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_tim3_ch4_up);
   /* USER CODE BEGIN DMA1_Channel2_3_IRQn 1 */
-  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
 
   /* USER CODE END DMA1_Channel2_3_IRQn 1 */
 }
