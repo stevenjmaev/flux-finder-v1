@@ -2,3 +2,7 @@
 **/*.elf
 **/*.ninja_log
 build/Debug/.ninja_log
+build/Debug/.ninja_deps
+build/Debug/flux-finder-v1.map
+/flux-finder-v1.ioc
+index-*.json
