@@ -33,6 +33,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 
 #include "matrix.h"
+#include "frame_converter.h"
 
 /* USER CODE END Includes */
 

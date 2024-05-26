@@ -146,12 +146,8 @@ int main(void)
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
   
-  // HAL_DMA_Start(&hdma_tim3_ch4_up, (uint32_t)&buf, (uint32_t)&htim3.Instance->CCR2, 4);
-  // HAL_TIM_Base_Start_DMA(&htim3, (uint32_t)&dma_buf, 4);
   HAL_TIM_OC_Start_DMA(&htim3, TIM_CHANNEL_4, (uint32_t*)&dma_buf, DMA_LEN);
-  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
   
-  // HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_2);
   while (1)
   {
     HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
