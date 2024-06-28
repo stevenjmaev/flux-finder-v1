@@ -78,8 +78,6 @@ void Error_Handler(void);
 #define REF_1p25_GPIO_Port GPIOA
 #define I_SENSE_Pin GPIO_PIN_7
 #define I_SENSE_GPIO_Port GPIOA
-#define ROW0_Pin GPIO_PIN_0
-#define ROW0_GPIO_Port GPIOB
 #define ROW2_Pin GPIO_PIN_2
 #define ROW2_GPIO_Port GPIOB
 #define ROW3_Pin GPIO_PIN_10
@@ -88,6 +86,8 @@ void Error_Handler(void);
 #define COL0_GPIO_Port GPIOB
 #define SPI1_CS0_Pin GPIO_PIN_12
 #define SPI1_CS0_GPIO_Port GPIOB
+#define ROW0_Pin GPIO_PIN_8
+#define ROW0_GPIO_Port GPIOA
 #define uSD_DETECT_Pin GPIO_PIN_9
 #define uSD_DETECT_GPIO_Port GPIOA
 #define COL1_Pin GPIO_PIN_10

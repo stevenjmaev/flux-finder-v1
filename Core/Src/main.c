@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdarg.h>
 #include "matrix.h"
 /* USER CODE END Includes */
 
@@ -85,6 +86,151 @@ static volatile uint16_t dma_buf [DMA_LEN] = {
   3050, 3085, 3100, 3135, 3150, 3185, 3200, 3215, 3250, 3265, 3300, 3315, 3350, 3365, 3400,
   3415, 3450, 3465, 3500, 3515, 3550, 3565, 3600
 };
+
+
+
+  void UART_Printf(const char* fmt, ...) {
+      char buff[256];
+      va_list args;
+      va_start(args, fmt);
+      vsnprintf(buff, sizeof(buff), fmt, args);
+      HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff), HAL_MAX_DELAY);
+      va_end(args);
+  }
+
+
+  void ff_init() {
+      FATFS fs;
+      FRESULT res;
+      UART_Printf("Ready!\r\n");
+
+      // mount the default drive
+      res = f_mount(&fs, "", 0);
+      if(res != FR_OK) {
+          UART_Printf("f_mount() failed, res = %d\r\n", res);
+          return;
+      }
+
+      UART_Printf("f_mount() done!\r\n");
+
+      uint32_t freeClust;
+      FATFS* fs_ptr = &fs;
+      res = f_getfree("", &freeClust, &fs_ptr); // Warning! This fills fs.n_fatent and fs.csize!
+      if(res != FR_OK) {
+          UART_Printf("f_getfree() failed, res = %d\r\n", res);
+          return;
+      }
+
+      UART_Printf("f_getfree() done!\r\n");
+
+      uint32_t totalBlocks = (fs.n_fatent - 2) * fs.csize;
+      uint32_t freeBlocks = freeClust * fs.csize;
+
+      UART_Printf("Total blocks: %lu (%lu Mb)\r\n", totalBlocks, totalBlocks / 2000);
+      UART_Printf("Free blocks: %lu (%lu Mb)\r\n", freeBlocks, freeBlocks / 2000);
+
+      DIR dir;
+      res = f_opendir(&dir, "/");
+      if(res != FR_OK) {
+          UART_Printf("f_opendir() failed, res = %d\r\n", res);
+          return;
+      }
+
+      FILINFO fileInfo;
+      uint32_t totalFiles = 0;
+      uint32_t totalDirs = 0;
+      UART_Printf("--------\r\nRoot directory:\r\n");
+      for(;;) {
+          res = f_readdir(&dir, &fileInfo);
+          if((res != FR_OK) || (fileInfo.fname[0] == '\0')) {
+              break;
+          }
+          
+          if(fileInfo.fattrib & AM_DIR) {
+              UART_Printf("  DIR  %s\r\n", fileInfo.fname);
+              totalDirs++;
+          } else {
+              UART_Printf("  FILE %s\r\n", fileInfo.fname);
+              totalFiles++;
+          }
+      }
+
+      UART_Printf("(total: %lu dirs, %lu files)\r\n--------\r\n", totalDirs, totalFiles);
+
+      res = f_closedir(&dir);
+      if(res != FR_OK) {
+          UART_Printf("f_closedir() failed, res = %d\r\n", res);
+          return;
+      }
+
+      UART_Printf("Writing to log.txt...\r\n");
+
+      char writeBuff[128];
+      snprintf(writeBuff, sizeof(writeBuff), "Total blocks: %lu (%lu Mb); Free blocks: %lu (%lu Mb)\r\n",
+          totalBlocks, totalBlocks / 2000,
+          freeBlocks, freeBlocks / 2000);
+
+      FIL logFile;
+      res = f_open(&logFile, "log.txt", FA_OPEN_EXISTING | FA_WRITE);
+      if(res != FR_OK) {
+          UART_Printf("f_open() failed, res = %d\r\n", res);
+          return;
+      }
+
+      unsigned int bytesToWrite = strlen(writeBuff);
+      unsigned int bytesWritten;
+      res = f_write(&logFile, writeBuff, bytesToWrite, &bytesWritten);
+      if(res != FR_OK) {
+          UART_Printf("f_write() failed, res = %d\r\n", res);
+          return;
+      }
+
+      if(bytesWritten < bytesToWrite) {
+          UART_Printf("WARNING! Disk is full, bytesToWrite = %lu, bytesWritten = %lu\r\n", bytesToWrite, bytesWritten);
+      }
+
+      res = f_close(&logFile);
+      if(res != FR_OK) {
+          UART_Printf("f_close() failed, res = %d\r\n", res);
+          return;
+      }
+
+      UART_Printf("Reading file...\r\n");
+      FIL msgFile;
+      res = f_open(&msgFile, "log.txt", FA_READ);
+      if(res != FR_OK) {
+          UART_Printf("f_open() failed, res = %d\r\n", res);
+          return;
+      }
+
+      char readBuff[128];
+      unsigned int bytesRead;
+      res = f_read(&msgFile, readBuff, sizeof(readBuff)-1, &bytesRead);
+      if(res != FR_OK) {
+          UART_Printf("f_read() failed, res = %d\r\n", res);
+          return;
+      }
+
+      readBuff[bytesRead] = '\0';
+      UART_Printf("```\r\n%s\r\n```\r\n", readBuff);
+
+      res = f_close(&msgFile);
+      if(res != FR_OK) {
+          UART_Printf("f_close() failed, res = %d\r\n", res);
+          return;
+      }
+
+      // Unmount
+      res = f_mount(NULL, "", 0);
+      if(res != FR_OK) {
+          UART_Printf("Unmount failed, res = %d\r\n", res);
+          return;
+      }
+
+      UART_Printf("Done!\r\n");
+  }
+    
+
 /* USER CODE END 0 */
 
 /**
@@ -126,12 +272,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-  
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  ff_init();
 
   int i = 0;
   int j = 0;
@@ -232,7 +378,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  HAL_RCC_MCOConfig(RCC_MCO, RCC_MCO1SOURCE_SYSCLK, RCC_MCODIV_1);
 }
 
 /**
@@ -388,11 +533,11 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -537,11 +682,12 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|COL1_Pin|COL2_Pin|COL3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|ROW0_Pin|COL1_Pin|COL2_Pin
+                          |COL3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ROW0_Pin|ROW2_Pin|ROW3_Pin|COL0_Pin
-                          |SPI1_CS0_Pin|ROW1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ROW2_Pin|ROW3_Pin|COL0_Pin|SPI1_CS0_Pin
+                          |ROW1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);
@@ -555,19 +701,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 COL1_Pin COL2_Pin COL3_Pin
-                           LED0_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|COL1_Pin|COL2_Pin|COL3_Pin
-                          |LED0_Pin;
+  /*Configure GPIO pins : PA1 ROW0_Pin COL1_Pin COL2_Pin
+                           COL3_Pin LED0_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|ROW0_Pin|COL1_Pin|COL2_Pin
+                          |COL3_Pin|LED0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ROW0_Pin ROW2_Pin ROW3_Pin COL0_Pin
-                           LED1_Pin LED2_Pin ROW1_Pin */
-  GPIO_InitStruct.Pin = ROW0_Pin|ROW2_Pin|ROW3_Pin|COL0_Pin
-                          |LED1_Pin|LED2_Pin|ROW1_Pin;
+  /*Configure GPIO pin : PB0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ROW2_Pin ROW3_Pin COL0_Pin LED1_Pin
+                           LED2_Pin ROW1_Pin */
+  GPIO_InitStruct.Pin = ROW2_Pin|ROW3_Pin|COL0_Pin|LED1_Pin
+                          |LED2_Pin|ROW1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -579,14 +731,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(SPI1_CS0_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PA8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : uSD_DETECT_Pin */
   GPIO_InitStruct.Pin = uSD_DETECT_Pin;
