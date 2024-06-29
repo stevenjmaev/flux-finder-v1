@@ -51,6 +51,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/matrix.c
     Core/Src/frame_converter.c
     Core/Src/sdcard.c
+    Core/Src/user_diskio_spi.c
 )
 
 # Add include paths
@@ -59,6 +60,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Inc/matrix.h
     Core/Inc/frame_converter.h
     Core/Inc/sdcard.h
+    Core/Inc/user_diskio_spi.h
 )
 
 # Add project symbols (macros)

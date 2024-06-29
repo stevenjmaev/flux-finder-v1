@@ -7,3 +7,5 @@
 Documentation for the HAL libraries could be found here: https://www.st.com/en/embedded-software/stm32cube-mcu-mpu-packages/documentation.html
 
 For specifically STM32F0 processors, see here: https://www.st.com/resource/en/user_manual/um1785-description-of-stm32f0-hal-and-lowlayer-drivers-stmicroelectronics.pdf
+
+Different file-open modes: http://elm-chan.org/fsw/ff/doc/open.html

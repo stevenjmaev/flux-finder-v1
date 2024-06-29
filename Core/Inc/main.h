@@ -107,6 +107,9 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
+#define SD_SPI_HANDLE hspi2
+
+void UART_Printf(const char* fmt, ...);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

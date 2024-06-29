@@ -35,6 +35,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -94,8 +95,8 @@ static volatile uint16_t dma_buf [DMA_LEN] = {
       va_list args;
       va_start(args, fmt);
       vsnprintf(buff, sizeof(buff), fmt, args);
-      HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff), HAL_MAX_DELAY);
       va_end(args);
+      HAL_UART_Transmit(&huart1, (uint8_t*)buff, strlen(buff), HAL_MAX_DELAY);
   }
 
 
@@ -171,7 +172,7 @@ static volatile uint16_t dma_buf [DMA_LEN] = {
           freeBlocks, freeBlocks / 2000);
 
       FIL logFile;
-      res = f_open(&logFile, "log.txt", FA_OPEN_EXISTING | FA_WRITE);
+      res = f_open(&logFile, "log.txt", FA_OPEN_ALWAYS | FA_WRITE);
       if(res != FR_OK) {
           UART_Printf("f_open() failed, res = %d\r\n", res);
           return;
@@ -229,6 +230,91 @@ static volatile uint16_t dma_buf [DMA_LEN] = {
 
       UART_Printf("Done!\r\n");
   }
+
+
+int test_fs(void){
+   UART_Printf("\r\n~ SD card demo by kiwih ~\r\n\r\n");
+
+  HAL_Delay(1000); //a short delay is important to let the SD card settle
+
+  //some variables for FatFs
+  FATFS FatFs; 	//Fatfs handle
+  FIL fil; 		//File handle
+  FRESULT fres; //Result after operations
+
+  //Open the file system
+  fres = f_mount(&FatFs, "", 1); //1=mount now
+  if (fres != FR_OK) {
+    UART_Printf("f_mount error (%i)\r\n", fres);
+    while(1);
+  }
+
+  //Let's get some statistics from the SD card
+  DWORD free_clusters, free_sectors, total_sectors;
+
+  FATFS* getFreeFs;
+
+  fres = f_getfree("", &free_clusters, &getFreeFs);
+  if (fres != FR_OK) {
+    UART_Printf("f_getfree error (%i)\r\n", fres);
+    while(1);
+  }
+
+  //Formula comes from ChaN's documentation
+  total_sectors = (getFreeFs->n_fatent - 2) * getFreeFs->csize;
+  free_sectors = free_clusters * getFreeFs->csize;
+
+  UART_Printf("SD card stats:\r\n%10lu KiB total drive space.\r\n%10lu KiB available.\r\n", total_sectors / 2, free_sectors / 2);
+
+  //Now let's try to open file "test.txt"
+  fres = f_open(&fil, "test.txt", FA_READ);
+  if (fres != FR_OK) {
+    UART_Printf("f_open error (%i)\r\n");
+    while(1);
+  }
+  UART_Printf("I was able to open 'test.txt' for reading!\r\n");
+
+  //Read 30 bytes from "test.txt" on the SD card
+  BYTE readBuf[30];
+
+  //We can either use f_read OR f_gets to get data out of files
+  //f_gets is a wrapper on f_read that does some string formatting for us
+  TCHAR* rres = f_gets((TCHAR*)readBuf, 30, &fil);
+  if(rres != 0) {
+    UART_Printf("Read string from 'test.txt' contents: %s\r\n", readBuf);
+  } else {
+    UART_Printf("f_gets error (%i)\r\n", fres);
+  }
+
+  //Be a tidy kiwi - don't forget to close your file!
+  f_close(&fil);
+
+  //Now let's try and write a file "write.txt"
+  fres = f_open(&fil, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+  if(fres == FR_OK) {
+    UART_Printf("I was able to open 'write.txt' for writing\r\n");
+  } else {
+    UART_Printf("f_open error (%i)\r\n", fres);
+  }
+
+  //Copy in a string
+  strncpy((char*)readBuf, "a new file is made!", 19);
+  UINT bytesWrote;
+  fres = f_write(&fil, readBuf, 19, &bytesWrote);
+  if(fres == FR_OK) {
+    UART_Printf("Wrote %i bytes to 'write.txt'!\r\n", bytesWrote);
+  } else {
+    UART_Printf("f_write error (%i)\r\n");
+  }
+
+  //Be a tidy kiwi - don't forget to close your file!
+  f_close(&fil);
+
+  //We're done, so de-mount the drive
+  f_mount(NULL, "", 0);
+
+  return 0;
+}
     
 
 /* USER CODE END 0 */
@@ -277,8 +363,6 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  ff_init();
-
   int i = 0;
   int j = 0;
   int len = 0;
@@ -287,6 +371,8 @@ int main(void)
 
   snprintf(buf, sizeof(buf), "hello world!\n\r");
   HAL_UART_Transmit(&huart1, buf, sizeof(buf), HAL_MAX_DELAY);
+  ff_init();
+  // test_fs();
   HAL_ADC_Start(&hadc);
   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
