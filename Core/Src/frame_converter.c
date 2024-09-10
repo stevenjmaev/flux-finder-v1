@@ -1,34 +1,43 @@
 #include "main.h"
-
+#ifdef __FRAME_CONVERTER_H
 #define MAX_CCR 65535
 
-#define NUM_PX 256
-#define NUM_BIT_PER_PX 24
-#define NUM_PARTS_PER_BIT_CODE 2
+uint16_t dma_buf [DMA_LEN] = {0};
 
-#define ZERO_CODE_A 15
-#define ZERO_CODE_B 35
-#define ONE_CODE_A 35
-#define ONE_CODE_B 15
+void print_frame(UART_HandleTypeDef huart1){
+    int i;
+    int len = 0;
+    char buf [64] = {'\0'};
 
-#define COUNT_PER_BIT (ZERO_CODE_A + ZERO_CODE_B)
+    for (i = 0; i < DMA_LEN; i++){
+        len = snprintf(buf, sizeof(buf), "%04d: %d\n", i, dma_buf[i]);
+        HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+    }
+}
 
-// note it's '+1' because the first one should be zero (for the reset/initialization)...
-// #define FRAME_BUF_SIZE (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE) + 1
-#define FRAME_BUF_SIZE 10
-
-uint16_t frame_data_buf [FRAME_BUF_SIZE];
+void init_test_frame(void){
+    int i;
+    int px_sel = 0;
+    static const uint32_t pxs [3] = {0x110000, 0x1100, 0x11};
+    dma_buf[0] = OFFSET;
+  
+    for (i = 0; i < NUM_PX; i++){
+        set_px_color(i, pxs[px_sel]);
+        px_sel = (px_sel + 1) % 3;
+    }
+  
+}
 
 // 'color' should be 24-bit
 void set_px_color(uint16_t idx, uint32_t color){
     uint16_t* px;// = NULL;
-    px = &frame_data_buf[(NUM_PARTS_PER_BIT_CODE * NUM_BIT_PER_PX) * idx + 1]; // offset by one (the first arr number should be 0)
+    px = &dma_buf[(NUM_PARTS_PER_BIT_CODE * NUM_BIT_PER_PX) * idx + 1]; // offset by one (the first arr number should be 14400)
 
-    uint16_t starting_count = (idx * COUNT_PER_BIT * NUM_BIT_PER_PX) % MAX_CCR;
+    uint16_t starting_count = (OFFSET + (idx * COUNT_PER_BIT * NUM_BIT_PER_PX)) % MAX_CCR;
 
-    int bit_idx;
-    for (bit_idx = (NUM_BIT_PER_PX - 1); bit_idx > 0; bit_idx--){
-        if (color & (1 << bit_idx)){ // it's a '1'
+    uint16_t bit_idx;
+    for (bit_idx = (NUM_BIT_PER_PX); bit_idx > 0; bit_idx--){
+        if (color & (1 << (bit_idx - 1))){ // it's a '1'
             *(px++) = (starting_count + ONE_CODE_A) % MAX_CCR;
             *(px++) = (starting_count + ONE_CODE_A + ONE_CODE_B) % MAX_CCR;
         }
@@ -40,3 +49,4 @@ void set_px_color(uint16_t idx, uint32_t color){
     }
     
 }
+#endif

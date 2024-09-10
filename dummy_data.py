@@ -20,7 +20,7 @@ single_px2 = 0x001100
 single_px3 = 0x000011
 pxs = [single_px, single_px2, single_px3]
 
-NUM_PXS = 8
+NUM_PXS = 256
 # TODO: Something weird's going on: with a pattern of 3 repeating pixels,
 #       I can only do this number of pixels: (n*3) + 1 (e.g. 4, 10, 13, etc)
 # TODO: Also, when it's a different number of pixels (like 11) and we use 0xEE instead of 0xFF
@@ -59,8 +59,8 @@ while current_bit > 0:
         width = WIDTH_B if i else WIDTH_A
 
 
-    # current = (current + width) % MAX_VALUE
-    current = (current + width)
+    current = (current + width) % MAX_VALUE
+    # current = (current + width)
     if not i:
         current_bit -= 1
 
@@ -80,7 +80,6 @@ for i, a in enumerate(arr):
     if i % 15 == 0 and i != 0:
         s += "\n"
 s += "};"
-
 print(s)
 
 with open("Core/Inc/test_frame.h", "+w") as f:
