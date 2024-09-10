@@ -10,6 +10,10 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
+
+void set_px_color(uint16_t idx, uint32_t color);
+
+
 #ifdef __cplusplus
 }
 #endif

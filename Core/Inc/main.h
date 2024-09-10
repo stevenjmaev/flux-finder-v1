@@ -34,7 +34,7 @@ extern "C" {
 
 #include "matrix.h"
 #include "frame_converter.h"
-
+#include "test_frame.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -70,6 +70,8 @@ void Error_Handler(void);
 #define BTN2_GPIO_Port GPIOC
 #define HALL_Pin GPIO_PIN_0
 #define HALL_GPIO_Port GPIOA
+#define VBATT_QTR_Pin GPIO_PIN_2
+#define VBATT_QTR_GPIO_Port GPIOA
 #define THERM1_Pin GPIO_PIN_4
 #define THERM1_GPIO_Port GPIOA
 #define THERM2_Pin GPIO_PIN_5
@@ -78,6 +80,8 @@ void Error_Handler(void);
 #define REF_1p25_GPIO_Port GPIOA
 #define I_SENSE_Pin GPIO_PIN_7
 #define I_SENSE_GPIO_Port GPIOA
+#define NET_2p5_Pin GPIO_PIN_0
+#define NET_2p5_GPIO_Port GPIOB
 #define ROW2_Pin GPIO_PIN_2
 #define ROW2_GPIO_Port GPIOB
 #define ROW3_Pin GPIO_PIN_10

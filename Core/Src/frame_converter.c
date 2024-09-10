@@ -11,15 +11,16 @@
 #define ONE_CODE_A 35
 #define ONE_CODE_B 15
 
-#define COUNT_PER_BIT 50 // 15 + 35
+#define COUNT_PER_BIT (ZERO_CODE_A + ZERO_CODE_B)
 
 // note it's '+1' because the first one should be zero (for the reset/initialization)...
-#define FRAME_BUF_SIZE (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE) + 1
+// #define FRAME_BUF_SIZE (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE) + 1
+#define FRAME_BUF_SIZE 10
 
 uint16_t frame_data_buf [FRAME_BUF_SIZE];
 
 // 'color' should be 24-bit
-static void set_px_color(uint16_t idx, uint32_t color){
+void set_px_color(uint16_t idx, uint32_t color){
     uint16_t* px;// = NULL;
     px = &frame_data_buf[(NUM_PARTS_PER_BIT_CODE * NUM_BIT_PER_PX) * idx + 1]; // offset by one (the first arr number should be 0)
 

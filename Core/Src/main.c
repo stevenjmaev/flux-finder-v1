@@ -74,6 +74,7 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#ifndef DMA_LEN
 #define DMA_LEN 144
 static volatile uint16_t dma_buf [DMA_LEN] = {
   15, 50, 65, 100, 115, 150, 165, 200, 215, 250, 265, 300, 315, 350, 365, 400, 
@@ -87,8 +88,7 @@ static volatile uint16_t dma_buf [DMA_LEN] = {
   3050, 3085, 3100, 3135, 3150, 3185, 3200, 3215, 3250, 3265, 3300, 3315, 3350, 3365, 3400,
   3415, 3450, 3465, 3500, 3515, 3550, 3565, 3600
 };
-
-
+#endif
 
   void UART_Printf(const char* fmt, ...) {
       char buff[256];
@@ -377,9 +377,11 @@ int main(void)
   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-  
+	
+  HAL_Delay(500);
+  htim3.Instance->CCR4 = 1;
   HAL_TIM_OC_Start_DMA(&htim3, TIM_CHANNEL_4, (uint32_t*)&dma_buf, DMA_LEN);
-  
+  // set_px_color(0,0x)
   while (1)
   {
     HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
@@ -405,7 +407,7 @@ int main(void)
 	  }
     len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-    len = snprintf(buf, sizeof(buf), "  htim3.Instance->CCR2 = %d\n\r", htim3.Instance->CCR2);
+    len = snprintf(buf, sizeof(buf), "  htim3.Instance->CCR4 = %d\n\r", htim3.Instance->CCR4);
     HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
 	  HAL_Delay(500);
     matrix_select(0, 0);
@@ -517,6 +519,14 @@ static void MX_ADC_Init(void)
 
   /** Configure for the selected ADC regular channel to be converted.
   */
+  sConfig.Channel = ADC_CHANNEL_2;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
   sConfig.Channel = ADC_CHANNEL_4;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
@@ -542,6 +552,14 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_7;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -769,17 +787,11 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|ROW0_Pin|COL1_Pin|COL2_Pin
-                          |COL3_Pin, GPIO_PIN_RESET);
+                          |COL3_Pin|LED0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ROW2_Pin|ROW3_Pin|COL0_Pin|SPI1_CS0_Pin
-                          |ROW1_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin, GPIO_PIN_SET);
+                          |LED1_Pin|LED2_Pin|ROW1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : BTN0_Pin BTN1_Pin BTN2_Pin */
   GPIO_InitStruct.Pin = BTN0_Pin|BTN1_Pin|BTN2_Pin;
@@ -795,12 +807,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ROW2_Pin ROW3_Pin COL0_Pin LED1_Pin
                            LED2_Pin ROW1_Pin */
