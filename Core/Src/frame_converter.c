@@ -9,7 +9,7 @@ void print_frame(UART_HandleTypeDef huart1){
     int len = 0;
     char buf [64] = {'\0'};
 
-    for (i = 0; i < DMA_LEN; i++){
+    for (i = 0; i < DMA_LEN - 1; i++){
         len = snprintf(buf, sizeof(buf), "%04d: %d\n", i, dma_buf[i]);
         HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
     }
@@ -39,10 +39,12 @@ void set_px_color(uint16_t idx, uint32_t color){
     for (bit_idx = (NUM_BIT_PER_PX); bit_idx > 0; bit_idx--){
         if (color & (1 << (bit_idx - 1))){ // it's a '1'
             *(px++) = (starting_count + ONE_CODE_A) % MAX_CCR;
+            if (idx == NUM_PX - 1 && bit_idx == 1) return; 
             *(px++) = (starting_count + ONE_CODE_A + ONE_CODE_B) % MAX_CCR;
         }
         else { // it's a '0'
             *(px++) = (starting_count + ZERO_CODE_A) % MAX_CCR;
+            if (idx == NUM_PX - 1 && bit_idx == 1) return; 
             *(px++) = (starting_count + ZERO_CODE_A + ZERO_CODE_B) % MAX_CCR;
         }
         starting_count = (starting_count + COUNT_PER_BIT) % MAX_CCR;

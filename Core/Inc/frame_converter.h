@@ -10,7 +10,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-#define NUM_PX 64
+#define NUM_PX 70
 #define NUM_BIT_PER_PX 24
 #define NUM_PARTS_PER_BIT_CODE 2
 
@@ -23,7 +23,8 @@ extern "C" {
 
 #define OFFSET 14400
 // note it's '+1' because the first one should be 14400 (for the reset/initialization)...
-#define DMA_LEN (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE) + 1
+// Had to remove the +1 because we were off by one toggle (otherwise we were leaving the line high during idle)
+#define DMA_LEN (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE)
 
 void init_test_frame(void);
 void set_px_color(uint16_t idx, uint32_t color);
