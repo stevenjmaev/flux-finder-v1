@@ -10,7 +10,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-#define NUM_PX 70
+#define NUM_PX 32
 #define NUM_BIT_PER_PX 24
 #define NUM_PARTS_PER_BIT_CODE 2
 
@@ -26,6 +26,7 @@ extern "C" {
 // Had to remove the +1 because we were off by one toggle (otherwise we were leaving the line high during idle)
 #define DMA_LEN (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE)
 
+uint32_t rgb_to_grb(uint32_t rgb);
 void init_test_frame(void);
 void set_px_color(uint16_t idx, uint32_t color);
 extern uint16_t dma_buf [DMA_LEN];
