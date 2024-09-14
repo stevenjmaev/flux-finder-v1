@@ -33,7 +33,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 73,
+				"line" : 74,
 				"parent" : 0
 			},
 			{
@@ -95,6 +95,10 @@
 				{
 					"backtrace" : 3,
 					"path" : "C:/_Documents/_Projects and Designs/flux-finder-v1-code/Core/Inc/test_frame.h"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/_Documents/_Projects and Designs/flux-finder-v1-code/Core/Inc/color_mapping.h"
 				},
 				{
 					"backtrace" : 2,
@@ -222,6 +226,10 @@
 				{
 					"backtrace" : 3,
 					"path" : "C:/_Documents/_Projects and Designs/flux-finder-v1-code/Core/Inc/test_frame.h"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/_Documents/_Projects and Designs/flux-finder-v1-code/Core/Inc/color_mapping.h"
 				},
 				{
 					"backtrace" : 2,

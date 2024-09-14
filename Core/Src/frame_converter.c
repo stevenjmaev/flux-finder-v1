@@ -3,6 +3,7 @@
 #define MAX_CCR 65535
 
 uint16_t dma_buf [DMA_LEN] = {0};
+uint32_t frame_pxs [NUM_PX] = {0};
 
 void print_frame(UART_HandleTypeDef huart1){
     int i;
@@ -15,34 +16,67 @@ void print_frame(UART_HandleTypeDef huart1){
     }
 }
 
-#define NUM_TEST_COLORS 8
-#define NUM_TEST_COLORS 3
+// static const uint32_t pxs [] = {
+//     0x110000,
+//     0x240200,
+//     0x350200,
+//     0x480200,
+//     0x7d0200,
+//     0xa20200,
+//     0x02e600,
+//     0x031200
+// };
+// TODO: need to figure out how to make them all the same luminous intensity
+static const uint32_t pxs [] = {
+    0x110000,
+    0x1100,
+    0x11
+};
 void init_test_frame(void){
     int i;
     int px_sel = 0;
-    // TODO: need to figure out how to make them all the same luminous intensity
-    // static const uint32_t pxs [NUM_TEST_COLORS] = {
-    //     0x110000,
-    //     0x240200,
-    //     0x350200,
-    //     0x480200,
-    //     0x7d0200,
-    //     0xa20200,
-    //     0x02e600,
-    //     0x031200
-    // };
-    static const uint32_t pxs [NUM_TEST_COLORS] = {
-        0x110000,
-        0x1100,
-        0x11
-    };
     dma_buf[0] = OFFSET;
+
+    uint32_t num_test_colors;
+    num_test_colors = sizeof(pxs) / sizeof(pxs[0]);
   
     for (i = 0; i < NUM_PX; i++){
         set_px_color(i, pxs[px_sel]);
-        px_sel = (px_sel + 1) % NUM_TEST_COLORS;
+        px_sel = (px_sel + 1) % num_test_colors;
     }
-  
+}
+
+
+void update_frame_brightness(uint8_t increase){
+
+    // TODO: FIX THIS!! USE HSV COLOR MAPPING!!
+    // uint16_t idx = 0;
+    // uint32_t prev = 0;
+    // float blue,green,red;
+
+    // for (idx = 0; idx < NUM_PX; idx ++){
+    //     prev = frame_pxs[idx];
+    //     red = (float)((prev & 0xFF0000) >> 16);
+    //     green = (float)((prev & 0x00FF00) >> 8);
+    //     blue = (float)(prev & 0x0000FF);
+
+    //     if (increase){
+    //         red = MIN(255, float(red * 1.05));
+    //         green = MIN(255, float(green * 1.05));
+    //         blue = MIN(255, float(blue * 1.05));
+    //     }
+    //     else{
+    //         red = MAX(0, float(red * 0.95));
+    //         green = MAX(0, float(green * 0.95));
+    //         blue = MAX(0, float(blue * 0.95));
+    //     }
+        
+    //     if (red < 0 || green < 0 || blue < 0) return;
+    //     else if (red > 255 || green > 255 || blue > 255) return;
+
+
+    //     set_px_color(idx, (red << 16) | (green << 8) | blue);
+    // }
 }
 
 uint32_t rgb_to_grb(uint32_t rgb){
@@ -57,7 +91,7 @@ uint32_t rgb_to_grb(uint32_t rgb){
 void set_px_color(uint16_t idx, uint32_t rgb){
     uint16_t* px;// = NULL;
     px = &dma_buf[(NUM_PARTS_PER_BIT_CODE * NUM_BIT_PER_PX) * idx + 1]; // offset by one (the first arr number should be 14400)
-
+    frame_pxs[idx] = rgb;
     uint16_t starting_count = (OFFSET + (idx * COUNT_PER_BIT * NUM_BIT_PER_PX)) % MAX_CCR;
 
     uint16_t bit_idx;

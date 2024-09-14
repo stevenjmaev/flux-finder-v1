@@ -16,6 +16,10 @@
   *
   ******************************************************************************
   */
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -35,6 +39,8 @@ extern "C" {
 #include "matrix.h"
 #include "frame_converter.h"
 // #include "test_frame.h"
+
+#include "color_mapping.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -44,6 +50,18 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+
+extern volatile uint32_t g_ms_count;
+
+extern volatile uint32_t g_btn0_time; 
+extern volatile uint32_t g_btn1_time; 
+extern volatile uint32_t g_btn2_time;
+
+extern volatile uint8_t g_btn0_state; 
+extern volatile uint8_t g_btn1_state; 
+extern volatile uint8_t g_btn2_state;
+
+extern UART_HandleTypeDef huart1;
 
 /* USER CODE END EC */
 
@@ -64,10 +82,13 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BTN0_Pin GPIO_PIN_13
 #define BTN0_GPIO_Port GPIOC
+#define BTN0_EXTI_IRQn EXTI4_15_IRQn
 #define BTN1_Pin GPIO_PIN_14
 #define BTN1_GPIO_Port GPIOC
+#define BTN1_EXTI_IRQn EXTI4_15_IRQn
 #define BTN2_Pin GPIO_PIN_15
 #define BTN2_GPIO_Port GPIOC
+#define BTN2_EXTI_IRQn EXTI4_15_IRQn
 #define HALL_Pin GPIO_PIN_0
 #define HALL_GPIO_Port GPIOA
 #define VBATT_QTR_Pin GPIO_PIN_2
@@ -112,6 +133,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN Private defines */
 
 #define SD_SPI_HANDLE hspi2
+#define DEBOUNCE_TIME_MS 40
 
 void UART_Printf(const char* fmt, ...);
 /* USER CODE END Private defines */

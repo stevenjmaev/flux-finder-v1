@@ -62,6 +62,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Inc/sdcard.h
     Core/Inc/user_diskio_spi.h
     Core/Inc/test_frame.h
+    Core/Inc/color_mapping.h
 )
 
 # Add project symbols (macros)

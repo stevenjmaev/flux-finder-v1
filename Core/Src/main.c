@@ -35,7 +35,15 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+volatile uint32_t g_ms_count = 0;
+volatile uint32_t g_btn0_time = 0;
+volatile uint32_t g_btn1_time = 0;
+volatile uint32_t g_btn2_time = 0;
+volatile uint8_t g_btn0_state = 0;
+volatile uint8_t g_btn1_state = 0;
+volatile uint8_t g_btn2_state = 0;
 
+static int8_t btn_counter = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,6 +59,7 @@ I2C_HandleTypeDef hi2c1;
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim6;
 DMA_HandleTypeDef hdma_tim3_ch4_up;
 
 UART_HandleTypeDef huart1;
@@ -68,6 +77,7 @@ static void MX_SPI2_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_ADC_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -300,7 +310,48 @@ int test_fs(void){
 
   return 0;
 }
-    
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+  uint8_t tmp;
+  if (GPIO_Pin == BTN0_Pin){
+    tmp = HAL_GPIO_ReadPin(BTN0_GPIO_Port, BTN0_Pin);
+    if (tmp != g_btn0_state) {
+      g_btn0_time = g_ms_count;
+      g_btn0_state = tmp;
+    }
+  }
+  else if (GPIO_Pin == BTN1_Pin){
+    tmp = HAL_GPIO_ReadPin(BTN1_GPIO_Port, BTN1_Pin);
+    if (tmp != g_btn1_state) {
+      g_btn1_time = g_ms_count;
+      g_btn1_state = tmp;
+    }
+  }
+  else if (GPIO_Pin == BTN2_Pin){
+    tmp = HAL_GPIO_ReadPin(BTN2_GPIO_Port, BTN2_Pin);
+    if (tmp != g_btn2_state) {
+      g_btn2_time = g_ms_count;
+      g_btn2_state = tmp;
+    }
+  }
+}
+
+void handle_buttons(void){
+  uint32_t time;
+  time = g_ms_count;
+  if (g_btn0_state && (time > g_btn0_time + DEBOUNCE_TIME_MS)){
+    // btn0 is UP
+    btn_counter++;
+    update_frame_brightness(1);
+    g_btn0_state = 0; // we've already handled that button press, so consider it as unpressed
+  }
+  if (g_btn1_state && (time > g_btn1_time + DEBOUNCE_TIME_MS)){
+    // btn1 is DOWN
+    btn_counter--;
+    update_frame_brightness(0);
+    g_btn1_state = 0; // we've already handled that button press, so consider it as unpressed
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -340,6 +391,7 @@ int main(void)
   MX_I2C1_Init();
   MX_ADC_Init();
   MX_TIM3_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -368,38 +420,47 @@ int main(void)
   HAL_Delay(500);
   htim3.Instance->CCR4 = 1;
   HAL_TIM_OC_Start_DMA(&htim3, TIM_CHANNEL_4, (uint32_t*)&dma_buf, DMA_LEN);
-  // set_px_color(0,0x)
 
-
+  HAL_TIM_Base_Start_IT(&htim6);
+  uint32_t prev_ts = 0;
   while (1)
   {
+    handle_buttons();
     HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
     adc_reading = HAL_ADC_GetValue(&hadc);
-    j++;
-	  i = (i + 1) % 3;
-	  switch(i){
-	  case 0:
-		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-		  break;
-	  case 1:
-		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-		  break;
-	  case 2:
-		  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-		  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-		  break;
-	  }
-    len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
-    HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-    len = snprintf(buf, sizeof(buf), "  htim3.Instance->CCR4 = %d\n\r", htim3.Instance->CCR4);
-    HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-	  HAL_Delay(500);
+    
     matrix_select(0, 0);
+    
+    if (g_ms_count > prev_ts + 500) {
+      prev_ts = g_ms_count;
+      j++;
+      i = (i + 1) % 3;
+
+      switch(i){
+      case 0:
+        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+        break;
+      case 1:
+        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+        break;
+      case 2:
+        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+        break;
+      }
+      len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
+      HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+      len = snprintf(buf, sizeof(buf), "  frame_pxs[0] = 0x%06x\n\r", frame_pxs[0]);
+      HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+      len = snprintf(buf, sizeof(buf), "  btn_counter = %d\n\r", btn_counter);
+      HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+    }
+
     HAL_ADC_Start(&hadc);
 
     /* USER CODE END WHILE */
@@ -707,6 +768,38 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+
+  // NOTE: Cannot reasonably generate us precision running timer: http://www.efton.sk/STM32/gotcha/g15.html
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 1000;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 48;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -784,7 +877,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : BTN0_Pin BTN1_Pin BTN2_Pin */
   GPIO_InitStruct.Pin = BTN0_Pin|BTN1_Pin|BTN2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
@@ -818,6 +911,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(uSD_DETECT_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

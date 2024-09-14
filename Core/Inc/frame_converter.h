@@ -29,7 +29,10 @@ extern "C" {
 uint32_t rgb_to_grb(uint32_t rgb);
 void init_test_frame(void);
 void set_px_color(uint16_t idx, uint32_t color);
+void update_frame_brightness(uint8_t increase);
+
 extern uint16_t dma_buf [DMA_LEN];
+extern uint32_t frame_pxs [NUM_PX];
 
 #ifdef __cplusplus
 }
