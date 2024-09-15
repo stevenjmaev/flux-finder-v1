@@ -16,22 +16,35 @@ void print_frame(UART_HandleTypeDef huart1){
     }
 }
 
+static const uint32_t pxs [] = {
+
+    // These are at 82% value 
+    // (easy for viewing on google color picker)
+    // 0xd13400,
+    // 0xd15e00,
+    // 0xd17600,
+    // 0xd19600,
+    // 0xd1b500,
+    // 0xd1ca00,
+    // 0xa4d100,
+    // 0x5ed100
+    
+    // These are at 6.5% value (won't stress the 5V line too much..)
+    0x110400,
+    0x110700,
+    0x110900,
+    0x110c00,
+    0x110e00,
+    0x111000,
+    0x0d1100,
+    0x071100
+};
+
 // static const uint32_t pxs [] = {
 //     0x110000,
-//     0x240200,
-//     0x350200,
-//     0x480200,
-//     0x7d0200,
-//     0xa20200,
-//     0x02e600,
-//     0x031200
+//     0x1100,
+//     0x11
 // };
-// TODO: need to figure out how to make them all the same luminous intensity
-static const uint32_t pxs [] = {
-    0x110000,
-    0x1100,
-    0x11
-};
 void init_test_frame(void){
     int i;
     int px_sel = 0;
@@ -49,34 +62,32 @@ void init_test_frame(void){
 
 void update_frame_brightness(uint8_t increase){
 
-    // TODO: FIX THIS!! USE HSV COLOR MAPPING!!
-    // uint16_t idx = 0;
-    // uint32_t prev = 0;
-    // float blue,green,red;
+    uint16_t idx = 0;
+    uint32_t prev = 0;
+    RgbColor rgb;
+    HsvColor hsv;
 
-    // for (idx = 0; idx < NUM_PX; idx ++){
-    //     prev = frame_pxs[idx];
-    //     red = (float)((prev & 0xFF0000) >> 16);
-    //     green = (float)((prev & 0x00FF00) >> 8);
-    //     blue = (float)(prev & 0x0000FF);
+    for (idx = 0; idx < NUM_PX; idx ++){
+        prev = frame_pxs[idx];
+        rgb.r = (float)((prev & 0xFF0000) >> 16);
+        rgb.g = (float)((prev & 0x00FF00) >> 8);
+        rgb.b = (float)(prev & 0x0000FF);
 
-    //     if (increase){
-    //         red = MIN(255, float(red * 1.05));
-    //         green = MIN(255, float(green * 1.05));
-    //         blue = MIN(255, float(blue * 1.05));
-    //     }
-    //     else{
-    //         red = MAX(0, float(red * 0.95));
-    //         green = MAX(0, float(green * 0.95));
-    //         blue = MAX(0, float(blue * 0.95));
-    //     }
-        
-    //     if (red < 0 || green < 0 || blue < 0) return;
-    //     else if (red > 255 || green > 255 || blue > 255) return;
+        hsv = RgbToHsv(rgb);
 
+        if (increase){
+            hsv.v ++;
+        }
+        else{
+            hsv.v ++;
+        }
+        rgb = HsvToRgb(hsv);
 
-    //     set_px_color(idx, (red << 16) | (green << 8) | blue);
-    // }
+        // if (red < 0 || green < 0 || blue < 0) return;
+        // else if (red > 255 || green > 255 || blue > 255) return;
+
+        set_px_color(idx, (rgb.r << 16) | (rgb.g << 8) | rgb.b);
+    }
 }
 
 uint32_t rgb_to_grb(uint32_t rgb){

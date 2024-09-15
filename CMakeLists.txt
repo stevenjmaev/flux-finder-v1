@@ -50,6 +50,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/matrix.c
     Core/Src/frame_converter.c
+    Core/Src/color_mapping.c
     Core/Src/sdcard.c
     Core/Src/user_diskio_spi.c
     )
