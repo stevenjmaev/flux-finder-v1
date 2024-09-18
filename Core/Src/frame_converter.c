@@ -5,6 +5,9 @@
 uint16_t dma_buf [DMA_LEN] = {0};
 uint32_t frame_pxs [NUM_PX] = {0};
 
+static uint16_t * dma_buf_ptr = &dma_buf[0] + 1;
+static uint16_t px_idx = 0;
+
 void print_frame(UART_HandleTypeDef huart1){
     int i;
     int len = 0;
@@ -16,47 +19,49 @@ void print_frame(UART_HandleTypeDef huart1){
     }
 }
 
-static const uint32_t pxs [] = {
-
-    // These are at 82% value 
-    // (easy for viewing on google color picker)
-    // 0xd13400,
-    // 0xd15e00,
-    // 0xd17600,
-    // 0xd19600,
-    // 0xd1b500,
-    // 0xd1ca00,
-    // 0xa4d100,
-    // 0x5ed100
-    
-    // These are at 6.5% value (won't stress the 5V line too much..)
-    0x110400,
-    0x110700,
-    0x110900,
-    0x110c00,
-    0x110e00,
-    0x111000,
-    0x0d1100,
-    0x071100
-};
-
 // static const uint32_t pxs [] = {
-//     0x110000,
-//     0x1100,
-//     0x11
+
+//     // These are at 82% value 
+//     // (easy for viewing on google color picker)
+//     // 0xd13400,
+//     // 0xd15e00,
+//     // 0xd17600,
+//     // 0xd19600,
+//     // 0xd1b500,
+//     // 0xd1ca00,
+//     // 0xa4d100,
+//     // 0x5ed100
+    
+//     // These are at 6.5% value (won't stress the 5V line too much..)
+//     0x110400,
+//     0x110700,
+//     0x110900,
+//     0x110c00,
+//     0x110e00,
+//     0x111000,
+//     0x0d1100,
+//     0x071100
 // };
+
+static const uint32_t pxs [] = {
+    0x110000,
+    0x1100,
+    0x11
+};
 void init_test_frame(void){
-    int i;
-    int px_sel = 0;
+    uint8_t i = 0;
+    uint8_t color_sel = 0;
     dma_buf[0] = OFFSET;
 
     uint32_t num_test_colors;
     num_test_colors = sizeof(pxs) / sizeof(pxs[0]);
   
     for (i = 0; i < NUM_PX; i++){
-        set_px_color(i, pxs[px_sel]);
-        px_sel = (px_sel + 1) % num_test_colors;
+        frame_pxs[i] = pxs[color_sel];
+        color_sel = (color_sel + 1) % num_test_colors;
     }
+    load_half_frame();
+    load_half_frame();
 }
 
 
@@ -98,11 +103,21 @@ uint32_t rgb_to_grb(uint32_t rgb){
     return grb;
 }
 
+void load_half_frame(void){
+    int i;
+    if (dma_buf_ptr == &dma_buf[0] + DMA_LEN) dma_buf_ptr = &dma_buf[0];
+    if (px_idx == NUM_PX) px_idx = 0;
+
+    for (i = 0; i < NUM_PX / 4; i++){
+        set_px_color(px_idx, frame_pxs[px_idx]);
+        px_idx++;
+    }
+}
+
 // 'color' should be 24-bit, RGB
 void set_px_color(uint16_t idx, uint32_t rgb){
     uint16_t* px;// = NULL;
-    px = &dma_buf[(NUM_PARTS_PER_BIT_CODE * NUM_BIT_PER_PX) * idx + 1]; // offset by one (the first arr number should be 14400)
-    frame_pxs[idx] = rgb;
+    px = dma_buf_ptr; // &dma_buf[(NUM_PARTS_PER_BIT_CODE * NUM_BIT_PER_PX) * idx + 1]; // offset by one (the first arr number should be 14400)
     uint16_t starting_count = (OFFSET + (idx * COUNT_PER_BIT * NUM_BIT_PER_PX)) % MAX_CCR;
 
     uint16_t bit_idx;
@@ -121,6 +136,7 @@ void set_px_color(uint16_t idx, uint32_t rgb){
         }
         starting_count = (starting_count + COUNT_PER_BIT) % MAX_CCR;
     }
-    
+    // if (idx == NUM_PX) *(px++) = starting_count + OFFSET;
+    dma_buf_ptr = px;
 }
 #endif

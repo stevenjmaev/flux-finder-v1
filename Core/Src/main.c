@@ -44,6 +44,8 @@ volatile uint8_t g_btn1_state = 0;
 volatile uint8_t g_btn2_state = 0;
 
 static int8_t btn_counter = 0;
+
+static uint8_t load_next_half = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -353,6 +355,18 @@ void handle_buttons(void){
   }
 }
 
+void set_load_next_half_flag(DMA_HandleTypeDef *hdma){
+  load_next_half = 1;
+}
+
+// void half_cmplt(DMA_HandleTypeDef *hdma){
+//   load_next_half = 1;
+// }
+
+// void cmplt(DMA_HandleTypeDef *hdma){
+//   load_next_half = 1;
+// }
+
 /* USER CODE END 0 */
 
 /**
@@ -421,10 +435,18 @@ int main(void)
   htim3.Instance->CCR4 = 1;
   HAL_TIM_OC_Start_DMA(&htim3, TIM_CHANNEL_4, (uint32_t*)&dma_buf, DMA_LEN);
 
+  hdma_tim3_ch4_up.XferHalfCpltCallback = set_load_next_half_flag;
+  hdma_tim3_ch4_up.XferCpltCallback = set_load_next_half_flag;
+
   HAL_TIM_Base_Start_IT(&htim6);
   uint32_t prev_ts = 0;
   while (1)
   {
+    if (load_next_half){
+      btn_counter ++;
+      load_half_frame();
+      load_next_half = 0;
+    }
     handle_buttons();
     HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
     adc_reading = HAL_ADC_GetValue(&hadc);
@@ -436,23 +458,23 @@ int main(void)
       j++;
       i = (i + 1) % 3;
 
-      switch(i){
-      case 0:
-        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-        break;
-      case 1:
-        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-        break;
-      case 2:
-        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-        break;
-      }
+      // switch(i){
+      // case 0:
+      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+      //   break;
+      // case 1:
+      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+      //   break;
+      // case 2:
+      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+      //   break;
+      // }
       len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
       HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
       len = snprintf(buf, sizeof(buf), "  frame_pxs[0] = 0x%06x\n\r", frame_pxs[0]);
