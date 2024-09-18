@@ -76,10 +76,10 @@ void update_frame_brightness(uint8_t increase){
         hsv = RgbToHsv(rgb);
 
         if (increase){
-            hsv.v ++;
+            hsv.v++;
         }
         else{
-            hsv.v ++;
+            hsv.v--;
         }
         rgb = HsvToRgb(hsv);
 
