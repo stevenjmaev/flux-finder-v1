@@ -456,13 +456,16 @@ int main(void)
       //   break;
       // }
       
+      // #define ENABLE_UART
       #ifdef ENABLE_UART
         len = snprintf(buf, sizeof(buf), "  frame_pxs[0] = 0x%06x\n\r", frame_pxs[0]);
         HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
         len = snprintf(buf, sizeof(buf), "  btn_counter = %d\n\r", btn_counter);
         HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-        len = snprintf(buf, sizeof(buf), "hall_reading[0]=%d\n\r", hall_readings[0]);
+      for (j = 0; j < NUM_PX; j++){
+        len = snprintf(buf, sizeof(buf), "hall_readings[%d]=%d\n\r", j, hall_readings[0]);
         HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+      }
       #endif
       }
 
