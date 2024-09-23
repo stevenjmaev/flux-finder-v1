@@ -15,14 +15,25 @@ void matrix_select(int row, int col){
     col2 = (col & (1 << 2)) ? 1 : 0;
     col3 = (col & (1 << 3)) ? 1 : 0;
 
-    HAL_GPIO_WritePin(ROW0_GPIO_Port, ROW0_Pin, row0);
-    HAL_GPIO_WritePin(ROW1_GPIO_Port, ROW1_Pin, row1);
-    HAL_GPIO_WritePin(ROW2_GPIO_Port, ROW2_Pin, row2);
-    HAL_GPIO_WritePin(ROW3_GPIO_Port, ROW3_Pin, row3);
+    // NOTE: I accidentally connected them in reverse on "hall_array.kicad_sch"
+    HAL_GPIO_WritePin(ROW0_GPIO_Port, ROW0_Pin, row3);
+    HAL_GPIO_WritePin(ROW1_GPIO_Port, ROW1_Pin, row2);
+    HAL_GPIO_WritePin(ROW2_GPIO_Port, ROW2_Pin, row1);
+    HAL_GPIO_WritePin(ROW3_GPIO_Port, ROW3_Pin, row0);
 
     HAL_GPIO_WritePin(COL0_GPIO_Port, COL0_Pin, col0);
     HAL_GPIO_WritePin(COL1_GPIO_Port, COL1_Pin, col1);
     HAL_GPIO_WritePin(COL2_GPIO_Port, COL2_Pin, col2);
     HAL_GPIO_WritePin(COL3_GPIO_Port, COL3_Pin, col3);
 
+}
+
+
+void matrix_select_idx(int idx){
+    uint8_t row, col;
+
+    row = idx / 16;
+    col = idx % 16;
+
+    matrix_select(row, col);
 }

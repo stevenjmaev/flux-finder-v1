@@ -10,6 +10,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 void matrix_select(int row, int col);
+void matrix_select_idx(int idx);
 
 #ifdef __cplusplus
 }

@@ -44,6 +44,8 @@ volatile uint8_t g_btn1_state = 0;
 volatile uint8_t g_btn2_state = 0;
 
 static int8_t btn_counter = 0;
+
+volatile unsigned int hall_readings [NUM_PX] = {0};
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,6 +62,7 @@ SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 DMA_HandleTypeDef hdma_tim3_ch4_up;
 
 UART_HandleTypeDef huart1;
@@ -78,6 +81,7 @@ static void MX_I2C1_Init(void);
 static void MX_ADC_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -392,6 +396,7 @@ int main(void)
   MX_ADC_Init();
   MX_TIM3_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -403,65 +408,81 @@ int main(void)
   int i = 0;
   int j = 0;
   int len = 0;
-  unsigned int adc_reading = 0;
   char buf [64] = {'\0'};
 
   snprintf(buf, sizeof(buf), "hello world!\n\r");
   HAL_UART_Transmit(&huart1, buf, sizeof(buf), HAL_MAX_DELAY);
   ff_init();
   // test_fs();
-  HAL_ADC_Start(&hadc);
+
   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
   
   init_test_frame();
 
-  HAL_Delay(500);
   htim3.Instance->CCR4 = 1;
   HAL_TIM_OC_Start_DMA(&htim3, TIM_CHANNEL_4, (uint32_t*)&dma_buf, DMA_LEN);
 
   HAL_TIM_Base_Start_IT(&htim6);
+
+  matrix_select_idx(0);
+  HAL_ADC_Start_IT(&hadc);
+  
   uint32_t prev_ts = 0;
   while (1)
   {
     handle_buttons();
-    HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-    adc_reading = HAL_ADC_GetValue(&hadc);
-    
-    matrix_select(0, 0);
     
     if (g_ms_count > prev_ts + 500) {
       prev_ts = g_ms_count;
-      j++;
       i = (i + 1) % 3;
 
-      switch(i){
-      case 0:
-        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-        break;
-      case 1:
-        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-        break;
-      case 2:
-        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-        break;
+      // switch(i){
+      // case 0:
+      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+      //   break;
+      // case 1:
+      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+      //   break;
+      // case 2:
+      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+      //   break;
+      // }
+      
+      #ifdef ENABLE_UART
+        len = snprintf(buf, sizeof(buf), "  frame_pxs[0] = 0x%06x\n\r", frame_pxs[0]);
+        HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+        len = snprintf(buf, sizeof(buf), "  btn_counter = %d\n\r", btn_counter);
+        HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+        len = snprintf(buf, sizeof(buf), "hall_reading[0]=%d\n\r", hall_readings[0]);
+        HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
+      #endif
       }
-      len = snprintf(buf, sizeof(buf), "j=%04d | adc_reading=%d\n\r", j, adc_reading);
-      HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-      len = snprintf(buf, sizeof(buf), "  frame_pxs[0] = 0x%06x\n\r", frame_pxs[0]);
-      HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-      len = snprintf(buf, sizeof(buf), "  btn_counter = %d\n\r", btn_counter);
-      HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-    }
 
-    HAL_ADC_Start(&hadc);
+      for (j = 0; j < NUM_PX; j++){
+        int32_t diff;
+        diff = hall_readings[j] - 1550;
+        if (ABS(diff) <= 50)        set_px_color(j, 0x001100);
+        else if (ABS(diff) <= 52)  set_px_color(j, 0x020E00);
+        else if (ABS(diff) <= 55)  set_px_color(j, 0x040C00);
+        else if (ABS(diff) <= 58)  set_px_color(j, 0x060B00);
+        else if (ABS(diff) <= 60)  set_px_color(j, 0x081000);
+        else if (ABS(diff) <= 67)  set_px_color(j, 0x0A0900);
+        else if (ABS(diff) <= 75)  set_px_color(j, 0x0C0800);
+        else if (ABS(diff) <= 90)  set_px_color(j, 0x0D0800);
+        else if (ABS(diff) <= 100)  set_px_color(j, 0x0E0600);
+        else if (ABS(diff) <= 150)  set_px_color(j, 0x0F0400);
+        else if (ABS(diff) <= 200)  set_px_color(j, 0x100200);
+        else                        set_px_color(j, 0x110000);
+      }
+
 
     /* USER CODE END WHILE */
 
@@ -567,53 +588,53 @@ static void MX_ADC_Init(void)
     Error_Handler();
   }
 
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_2;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // /** Configure for the selected ADC regular channel to be converted.
+  // */
+  // sConfig.Channel = ADC_CHANNEL_2;
+  // if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
 
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_4;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // /** Configure for the selected ADC regular channel to be converted.
+  // */
+  // sConfig.Channel = ADC_CHANNEL_4;
+  // if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
 
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_5;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // /** Configure for the selected ADC regular channel to be converted.
+  // */
+  // sConfig.Channel = ADC_CHANNEL_5;
+  // if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
 
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_6;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // /** Configure for the selected ADC regular channel to be converted.
+  // */
+  // sConfig.Channel = ADC_CHANNEL_6;
+  // if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
 
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_7;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // /** Configure for the selected ADC regular channel to be converted.
+  // */
+  // sConfig.Channel = ADC_CHANNEL_7;
+  // if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
 
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_8;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // /** Configure for the selected ADC regular channel to be converted.
+  // */
+  // sConfig.Channel = ADC_CHANNEL_8;
+  // if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
   /* USER CODE BEGIN ADC_Init 2 */
 
   /* USER CODE END ADC_Init 2 */
@@ -781,9 +802,8 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE BEGIN TIM6_Init 1 */
 
-  /* USER CODE END TIM6_Init 1 */
-
   // NOTE: Cannot reasonably generate us precision running timer: http://www.efton.sk/STM32/gotcha/g15.html
+  /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 1000;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -796,6 +816,36 @@ static void MX_TIM6_Init(void)
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 1000;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 48;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
 
 }
 
@@ -913,7 +963,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(uSD_DETECT_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */

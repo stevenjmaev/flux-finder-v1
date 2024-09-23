@@ -57,9 +57,11 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern ADC_HandleTypeDef hadc;
 extern DMA_HandleTypeDef hdma_tim3_ch4_up;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
 /* USER CODE BEGIN EV */
 extern TIM_HandleTypeDef htim3;
 
@@ -176,6 +178,57 @@ void DMA1_Channel2_3_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles ADC interrupt.
+  */
+void ADC1_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC1_IRQn 0 */
+
+  static uint16_t hall_idx = 0;
+  static uint8_t other_channels_idx = 0;
+  const uint32_t other_channels [] = {
+    ADC_CHANNEL_2,  // VBATT_QTR
+    ADC_CHANNEL_4,  // THERM1
+    ADC_CHANNEL_5,  // THERM2
+    ADC_CHANNEL_6,  // REF_1p25
+    ADC_CHANNEL_7,  // I_SENSE
+    ADC_CHANNEL_8   // NET_2p5
+  };
+
+  /* USER CODE END ADC1_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc);
+  /* USER CODE BEGIN ADC1_IRQn 1 */
+
+  unsigned int adc_reading = 0;
+  adc_reading = HAL_ADC_GetValue(&hadc); // TODO: Save this in global array! (to be printed from within main())
+  hall_readings[hall_idx] = adc_reading;
+
+  matrix_select_idx(hall_idx++);
+  if (hall_idx == NUM_PX) hall_idx = 0;
+  // else HAL_TIM_Base_Start_IT(&htim7);
+  HAL_TIM_Base_Start_IT(&htim7);
+
+  // TODO: select different ADC channel
+  // TODO: Look at how the adc "rank" stuff works.. it looks like it converts them all in one go?
+  //       Maybe I don't have to control it manually..
+  // if (other_channels_idx < 6){
+  //   ADC_ChannelConfTypeDef sConfig = {0};
+
+  //   sConfig.Channel = other_channels[other_channels_idx++];
+  //   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  //   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  //   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  //   {
+  //     Error_Handler();
+  //   }
+  //   if (other_channels_idx == 6) other_channels_idx = 0;
+  // }
+
+  // HAL_TIM_Base_Start_IT(&htim7);
+  /* USER CODE END ADC1_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM3 global interrupt.
   */
 void TIM3_IRQHandler(void)
@@ -203,6 +256,23 @@ void TIM6_IRQHandler(void)
   /* USER CODE BEGIN TIM6_IRQn 1 */
 
   /* USER CODE END TIM6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM7 global interrupt.
+  */
+void TIM7_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_IRQn 0 */
+
+  /* USER CODE END TIM7_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim7);
+  /* USER CODE BEGIN TIM7_IRQn 1 */
+
+  HAL_TIM_Base_Stop_IT(&htim7); // stop the timer
+  HAL_ADC_Start_IT(&hadc); // start the ADC conversion
+
+  /* USER CODE END TIM7_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

@@ -19,6 +19,7 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define ABS(x) (((x) < (0)) ? (-x) : (x))
 
 /* USER CODE END Header */
 
@@ -62,6 +63,8 @@ extern volatile uint8_t g_btn1_state;
 extern volatile uint8_t g_btn2_state;
 
 extern UART_HandleTypeDef huart1;
+
+extern volatile unsigned int hall_readings [NUM_PX];
 
 /* USER CODE END EC */
 
