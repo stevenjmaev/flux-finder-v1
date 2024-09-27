@@ -64,7 +64,7 @@ extern volatile uint8_t g_btn2_state;
 
 extern UART_HandleTypeDef huart1;
 
-extern volatile unsigned int hall_readings [NUM_PX];
+extern volatile uint16_t hall_readings [NUM_PX];
 
 /* USER CODE END EC */
 

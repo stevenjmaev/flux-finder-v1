@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include "matrix.h"
 /* USER CODE END Includes */
 
@@ -43,9 +44,10 @@ volatile uint8_t g_btn0_state = 0;
 volatile uint8_t g_btn1_state = 0;
 volatile uint8_t g_btn2_state = 0;
 
-static int8_t btn_counter = 0;
+volatile uint16_t hall_readings [NUM_PX] = {0};
 
-volatile unsigned int hall_readings [NUM_PX] = {0};
+uint16_t hall_readings_idle [NUM_PX] = {0};
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -345,15 +347,22 @@ void handle_buttons(void){
   time = g_ms_count;
   if (g_btn0_state && (time > g_btn0_time + DEBOUNCE_TIME_MS)){
     // btn0 is UP
-    btn_counter++;
     update_frame_brightness(1);
     g_btn0_state = 0; // we've already handled that button press, so consider it as unpressed
   }
   if (g_btn1_state && (time > g_btn1_time + DEBOUNCE_TIME_MS)){
     // btn1 is DOWN
-    btn_counter--;
     update_frame_brightness(0);
     g_btn1_state = 0; // we've already handled that button press, so consider it as unpressed
+  }
+  if (g_btn2_state && (time > g_btn2_time + DEBOUNCE_TIME_MS)){
+    // btn2 is ENTER
+    // Capture idle state of all hall sensors
+    uint8_t j;
+    for (j = 0; j < NUM_PX; j++){
+      memcpy(&hall_readings_idle, &hall_readings, sizeof(hall_readings));
+    }
+    g_btn2_state = 0; // we've already handled that button press, so consider it as unpressed
   }
 }
 
@@ -438,29 +447,27 @@ int main(void)
       prev_ts = g_ms_count;
       i = (i + 1) % 3;
 
-      // switch(i){
-      // case 0:
-      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-      //   break;
-      // case 1:
-      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-      //   break;
-      // case 2:
-      //   HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-      //   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-      //   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-      //   break;
-      // }
+      switch(i){
+      case 0:
+        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+        break;
+      case 1:
+        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+        break;
+      case 2:
+        HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+        break;
+      }
       
       // #define ENABLE_UART
       #ifdef ENABLE_UART
         len = snprintf(buf, sizeof(buf), "  frame_pxs[0] = 0x%06x\n\r", frame_pxs[0]);
-        HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
-        len = snprintf(buf, sizeof(buf), "  btn_counter = %d\n\r", btn_counter);
         HAL_UART_Transmit(&huart1, buf, len, HAL_MAX_DELAY);
       for (j = 0; j < NUM_PX; j++){
         len = snprintf(buf, sizeof(buf), "hall_readings[%d]=%d\n\r", j, hall_readings[0]);
@@ -471,7 +478,7 @@ int main(void)
 
       for (j = 0; j < NUM_PX; j++){
         int32_t diff;
-        diff = hall_readings[j] - 1550;
+        diff = hall_readings[j] - hall_readings_idle[j];
         if (ABS(diff) <= 50)        set_px_color(j, 0x001100);
         else if (ABS(diff) <= 52)  set_px_color(j, 0x020E00);
         else if (ABS(diff) <= 55)  set_px_color(j, 0x040C00);
