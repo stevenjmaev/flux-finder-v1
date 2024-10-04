@@ -1,4 +1,4 @@
-# Install script for directory: C:/_Documents/_Projects and Designs/flux-finder-v1-code
+# Install script for directory: C:/_Documents/_Projects and Designs/flux-finder-v1-code-f300
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/_Documents/_Projects and Designs/flux-finder-v1-code/build/Debug/cmake/stm32cubemx/cmake_install.cmake")
+  include("C:/_Documents/_Projects and Designs/flux-finder-v1-code-f300/build/Debug/cmake/stm32cubemx/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/_Documents/_Projects and Designs/flux-finder-v1-code/build/Debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/_Documents/_Projects and Designs/flux-finder-v1-code-f300/build/Debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

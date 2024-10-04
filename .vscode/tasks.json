@@ -10,40 +10,6 @@
     },
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "Build project",
-            "command": "cmake",
-            "args": ["--build", "${command:cmake.buildDirectory}", "-j", "8"],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": ["$gcc"],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "type": "shell",
-            "label": "Re-build project",
-            "command": "cmake",
-            "args": ["--build", "${command:cmake.buildDirectory}", "--clean-first", "-v", "-j", "8"],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": ["$gcc"]
-        },
-        {
-            "type": "shell",
-            "label": "Clean project",
-            "command": "cmake",
-            "args": ["--build", "${command:cmake.buildDirectory}", "--target", "clean"],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
             "type": "shell",
             "label": "CubeProg: Flash project (SWD)",
             "command": "STM32_Programmer_CLI",
@@ -63,24 +29,24 @@
             "problemMatcher": []
         },
         {
-            "type": "shell",
-            "label": "CubeProg: Flash project with defined serial number (SWD) - you must set serial number first",
-            "command": "STM32_Programmer_CLI",
-            "args": [
-                "--connect",
-                "port=swd",
-                "sn=<yourserialnumber>",
-                "--download",
-                "${command:cmake.launchTargetPath}",
-                // Let CMake extension decide executable: "${command:cmake.launchTargetPath}",
-                "-hardRst", // Hardware reset - if rst pin is connected
-                "-rst", // Software reset (backup)
-                "--start" // Start execution
+            "label": "Build + Flash",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "CMake: clean rebuild",
+                "CubeProg: Flash project (SWD)",
+            ]
+        },
+                {
+            "type": "cmake",
+            "label": "CMake: clean rebuild",
+            "command": "cleanRebuild",
+            "targets": [
+                "all"
             ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
+            "preset": "${command:cmake.activeBuildPresetName}",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template clean rebuild task"
         },
         {
             "type": "shell",

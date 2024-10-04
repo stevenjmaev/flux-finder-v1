@@ -1,14 +1,5 @@
 {
     "files.associations": {
-        "stm32f0xx_hal.h": "c",
-        "main.h": "c",
-        "matrix.h": "c",
-        "stdio.h": "c",
-        "stdint.h": "c",
-        "stdint-gcc.h": "c",
-        "stm32f0xx_it.h": "c",
-        "compare": "c",
-        "frame_converter.h": "c",
-        "stm32f0xx_ll_tim.h": "c"
+        "user_diskio_spi.h": "c"
     }
 }

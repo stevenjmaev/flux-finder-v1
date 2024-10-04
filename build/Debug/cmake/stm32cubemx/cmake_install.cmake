@@ -1,4 +1,4 @@
-# Install script for directory: C:/_Documents/_Projects and Designs/flux-finder-v1-code/cmake/stm32cubemx
+# Install script for directory: C:/_Documents/_Projects and Designs/flux-finder-v1-code-f300/cmake/stm32cubemx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

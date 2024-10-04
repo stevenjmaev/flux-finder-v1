@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f0xx_hal.h"
+#include "stm32f3xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -85,15 +85,15 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BTN0_Pin GPIO_PIN_13
 #define BTN0_GPIO_Port GPIOC
-#define BTN0_EXTI_IRQn EXTI4_15_IRQn
+#define BTN0_EXTI_IRQn EXTI15_10_IRQn
 #define BTN1_Pin GPIO_PIN_14
 #define BTN1_GPIO_Port GPIOC
-#define BTN1_EXTI_IRQn EXTI4_15_IRQn
+#define BTN1_EXTI_IRQn EXTI15_10_IRQn
 #define BTN2_Pin GPIO_PIN_15
 #define BTN2_GPIO_Port GPIOC
-#define BTN2_EXTI_IRQn EXTI4_15_IRQn
-#define HALL_Pin GPIO_PIN_0
-#define HALL_GPIO_Port GPIOA
+#define BTN2_EXTI_IRQn EXTI15_10_IRQn
+#define HALL0_Pin GPIO_PIN_0
+#define HALL0_GPIO_Port GPIOA
 #define VBATT_QTR_Pin GPIO_PIN_2
 #define VBATT_QTR_GPIO_Port GPIOA
 #define THERM1_Pin GPIO_PIN_4
@@ -104,8 +104,6 @@ void Error_Handler(void);
 #define REF_1p25_GPIO_Port GPIOA
 #define I_SENSE_Pin GPIO_PIN_7
 #define I_SENSE_GPIO_Port GPIOA
-#define NET_2p5_Pin GPIO_PIN_0
-#define NET_2p5_GPIO_Port GPIOB
 #define ROW2_Pin GPIO_PIN_2
 #define ROW2_GPIO_Port GPIOB
 #define ROW3_Pin GPIO_PIN_10

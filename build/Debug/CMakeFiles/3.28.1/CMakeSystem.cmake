@@ -3,7 +3,7 @@ set(CMAKE_HOST_SYSTEM_NAME "Windows")
 set(CMAKE_HOST_SYSTEM_VERSION "10.0.19045")
 set(CMAKE_HOST_SYSTEM_PROCESSOR "AMD64")
 
-include("C:/_Documents/_Projects and Designs/flux-finder-v1-code/cmake/gcc-arm-none-eabi.cmake")
+include("C:/_Documents/_Projects and Designs/flux-finder-v1-code-f300/cmake/gcc-arm-none-eabi.cmake")
 
 set(CMAKE_SYSTEM "Generic")
 set(CMAKE_SYSTEM_NAME "Generic")

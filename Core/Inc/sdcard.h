@@ -2,7 +2,7 @@
 #ifndef __SDCARD_H__
 #define __SDCARD_H__
 
-#include "stm32f0xx_hal.h"
+#include "stm32f3xx_hal.h"
 
 #define SDCARD_SPI_PORT      hspi1
 #define SDCARD_CS_Pin        GPIO_PIN_5 // Arduino shield: D4

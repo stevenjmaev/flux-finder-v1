@@ -10,7 +10,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-#define NUM_PX 112
+#define NUM_PX 113
 #define NUM_BIT_PER_PX 24
 #define NUM_PARTS_PER_BIT_CODE 2
 

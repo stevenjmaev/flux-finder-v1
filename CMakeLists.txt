@@ -19,7 +19,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set the project name
-set(CMAKE_PROJECT_NAME flux-finder-v1)
+set(CMAKE_PROJECT_NAME flux-finder-v1-code-f300)
 
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
@@ -53,10 +53,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/color_mapping.c
     Core/Src/sdcard.c
     Core/Src/user_diskio_spi.c
-    )
-    
-    # Add include paths
-    target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+)
+
+# Add include paths
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     Core/Inc/matrix.h
     Core/Inc/frame_converter.h
