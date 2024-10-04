@@ -8,7 +8,7 @@ enable_language(C ASM)
 
 target_compile_definitions(stm32cubemx INTERFACE 
 	USE_HAL_DRIVER 
-	STM32F070xB
+	STM32F030xC
     $<$<CONFIG:Debug>:DEBUG>
 )
 
@@ -57,7 +57,7 @@ target_sources(stm32cubemx INTERFACE
     ../../Middlewares/Third_Party/FatFs/src/option/syscall.c
     ../../Core/Src/sysmem.c
     ../../Core/Src/syscalls.c
-    ../../startup_stm32f070xb.s
+    ../../startup_stm32f030xc.s
 )
 
 target_link_directories(stm32cubemx INTERFACE

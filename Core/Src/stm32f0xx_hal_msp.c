@@ -333,6 +333,8 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
       Error_Handler();
     }
 
+    __HAL_DMA1_REMAP(HAL_DMA1_CH3_DEFAULT);
+
     /* Several peripheral DMA handle pointers point to the same DMA handle.
      Be aware that there is only one channel to perform all the requested DMAs. */
     __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC4],hdma_tim3_ch4_up);
