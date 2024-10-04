@@ -13,7 +13,7 @@
             // Or fixed file path: "${workspaceFolder}/path/to/filename.elf"
             "request": "launch",
             "servertype": "stlink",
-            "device": "STM32F070CBTx", //MCU used
+            "device": "STM32F030CCTx", //MCU used
             "interface": "swd",
             "serialNumber": "",        //Set ST-Link ID if you use multiple at the same time
             "runToEntryPoint": "main",
@@ -38,7 +38,7 @@
             // Or fixed file path: "${workspaceFolder}/path/to/filename.elf"
             "request": "attach",
             "servertype": "stlink",
-            "device": "STM32F070CBTx", //MCU used
+            "device": "STM32F030CCTx", //MCU used
             "interface": "swd",
             "serialNumber": "",        //Set ST-Link ID if you use multiple at the same time
             "runToEntryPoint": "main",
