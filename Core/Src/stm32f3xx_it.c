@@ -22,6 +22,8 @@
 #include "stm32f3xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "matrix.h"
+#include "stm32f3xx_ll_tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -223,12 +225,50 @@ void DMA1_Channel3_IRQHandler(void)
 void ADC1_2_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC1_2_IRQn 0 */
+  
+  static uint16_t hall_idx = 0;
+  static uint8_t other_channels_idx = 0;
+  const uint32_t other_channels [] = {
+    ADC_CHANNEL_2,  // VBATT_QTR
+    ADC_CHANNEL_4,  // THERM1
+    ADC_CHANNEL_5,  // THERM2
+    ADC_CHANNEL_6,  // REF_1p25
+    ADC_CHANNEL_7,  // I_SENSE
+    ADC_CHANNEL_8   // NET_2p5
+  };
+
 
   /* USER CODE END ADC1_2_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
   HAL_ADC_IRQHandler(&hadc2);
   /* USER CODE BEGIN ADC1_2_IRQn 1 */
 
+  unsigned int adc_reading = 0;
+  adc_reading = HAL_ADC_GetValue(&hadc1); // TODO: Save this in global array! (to be printed from within main())
+  hall_readings[hall_idx] = adc_reading;
+
+  matrix_select_idx(hall_idx++);
+  if (hall_idx == NUM_PX) hall_idx = 0;
+  // else HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start_IT(&htim1);
+
+  // TODO: select different ADC channel
+  // TODO: Look at how the adc "rank" stuff works.. it looks like it converts them all in one go?
+  //       Maybe I don't have to control it manually..
+  // if (other_channels_idx < 6){
+  //   ADC_ChannelConfTypeDef sConfig = {0};
+
+  //   sConfig.Channel = other_channels[other_channels_idx++];
+  //   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  //   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  //   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  //   {
+  //     Error_Handler();
+  //   }
+  //   if (other_channels_idx == 6) other_channels_idx = 0;
+  // }
+
+  // HAL_TIM_Base_Start_IT(&htim1);
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
@@ -285,6 +325,9 @@ void TIM1_CC_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim1);
   /* USER CODE BEGIN TIM1_CC_IRQn 1 */
 
+  HAL_TIM_Base_Stop_IT(&htim1); // stop the timer
+  HAL_ADC_Start_IT(&hadc1); // start the ADC conversion
+
   /* USER CODE END TIM1_CC_IRQn 1 */
 }
 
@@ -324,6 +367,7 @@ void EXTI15_10_IRQHandler(void)
 void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+  g_ms_count++;
 
   /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
