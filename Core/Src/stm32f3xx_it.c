@@ -60,9 +60,9 @@
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 extern DMA_HandleTypeDef hdma_tim3_ch4_up;
-extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim15;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -249,8 +249,8 @@ void ADC1_2_IRQHandler(void)
 
   matrix_select_idx(hall_idx++);
   if (hall_idx == NUM_PX) hall_idx = 0;
-  // else HAL_TIM_Base_Start_IT(&htim1);
-  HAL_TIM_Base_Start_IT(&htim1);
+  // else HAL_TIM_Base_Start_IT(&htim15);
+  HAL_TIM_Base_Start_IT(&htim15);
 
   // TODO: select different ADC channel
   // TODO: Look at how the adc "rank" stuff works.. it looks like it converts them all in one go?
@@ -268,7 +268,7 @@ void ADC1_2_IRQHandler(void)
   //   if (other_channels_idx == 6) other_channels_idx = 0;
   // }
 
-  // HAL_TIM_Base_Start_IT(&htim1);
+  // HAL_TIM_Base_Start_IT(&htim15);
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
@@ -280,55 +280,11 @@ void TIM1_BRK_TIM15_IRQHandler(void)
   /* USER CODE BEGIN TIM1_BRK_TIM15_IRQn 0 */
 
   /* USER CODE END TIM1_BRK_TIM15_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
+  HAL_TIM_IRQHandler(&htim15);
   /* USER CODE BEGIN TIM1_BRK_TIM15_IRQn 1 */
-
-  /* USER CODE END TIM1_BRK_TIM15_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 update and TIM16 interrupts.
-  */
-void TIM1_UP_TIM16_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_UP_TIM16_IRQn 0 */
-
-  /* USER CODE END TIM1_UP_TIM16_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_UP_TIM16_IRQn 1 */
-
-  /* USER CODE END TIM1_UP_TIM16_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 trigger, commutation and TIM17 interrupts.
-  */
-void TIM1_TRG_COM_TIM17_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_TRG_COM_TIM17_IRQn 0 */
-
-  /* USER CODE END TIM1_TRG_COM_TIM17_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_TRG_COM_TIM17_IRQn 1 */
-
-  /* USER CODE END TIM1_TRG_COM_TIM17_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 capture compare interrupt.
-  */
-void TIM1_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-
-  /* USER CODE END TIM1_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
-
-  HAL_TIM_Base_Stop_IT(&htim1); // stop the timer
+  HAL_TIM_Base_Stop_IT(&htim15); // stop the timer
   HAL_ADC_Start_IT(&hadc1); // start the ADC conversion
-
-  /* USER CODE END TIM1_CC_IRQn 1 */
+  /* USER CODE END TIM1_BRK_TIM15_IRQn 1 */
 }
 
 /**
