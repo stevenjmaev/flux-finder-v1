@@ -10,18 +10,18 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-#define NUM_PX 124
+#define NUM_PX 256
 #define NUM_BIT_PER_PX 24
 #define NUM_PARTS_PER_BIT_CODE 2
 
-#define ZERO_CODE_A 17
-#define ZERO_CODE_B 45
-#define ONE_CODE_A 45
-#define ONE_CODE_B 17
+#define ZERO_CODE_A 26
+#define ZERO_CODE_B 67
+#define ONE_CODE_A 67
+#define ONE_CODE_B 26
 
 #define COUNT_PER_BIT (ZERO_CODE_A + ZERO_CODE_B)
 
-#define OFFSET 14400
+#define OFFSET 20000
 // note it's '+1' because the first one should be 14400 (for the reset/initialization)...
 // Had to remove the +1 because we were off by one toggle (otherwise we were leaving the line high during idle)
 #define DMA_LEN (NUM_PX * NUM_BIT_PER_PX * NUM_PARTS_PER_BIT_CODE)

@@ -451,13 +451,13 @@ int main(void)
       prev_ts = g_ms_count;
       i = (i + 1) % 3;
 
-      // if (!calibrated){
-      //   uint8_t j;
-      //   for (j = 0; j < NUM_PX; j++){
-      //     memcpy(&hall_readings_idle, &hall_readings, sizeof(hall_readings));
-      //   }
-      //   calibrated = 1;
-      // }
+      if (!calibrated){
+        uint8_t j;
+        for (j = 0; j < NUM_PX; j++){
+          memcpy(&hall_readings_idle, &hall_readings, sizeof(hall_readings));
+        }
+        calibrated = 1;
+      }
 
       switch(i){
       case 0:
@@ -534,7 +534,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -549,7 +549,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -853,7 +853,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 1000;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 48;
+  htim6.Init.Period = 72;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
